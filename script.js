@@ -18,6 +18,10 @@ function divide(a, b) {
     return a / b;
 }
 
+//initializing variables to hold values and operator
+let first = null;
+let second = null;
+let operator = null;
 
 //Function to perform operation based on what type of math to calculate
 
