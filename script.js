@@ -14,21 +14,17 @@ function multiply(a, b) {
 }
 
 function divide(a, b) {
-    if (b === 0) {
-        throw new Error("Division by zero is not allowed.");
-    }
-    return a / b;
+    return a / b;  // Remove the error throw here, we'll handle it elsewhere
 }
 
 //initializing variables to hold values and operator
-let first = '';
-let second = '';
+let firstNumber = '';  // Changed from 'first'
+let secondNumber = '';  // Changed from 'second'
 let operator = '';
 let displayValue = '0';
-
+let shouldResetDisplay = false;
 
 //Function to perform operation based on what type of math to calculate
-
 function operate(operator, a, b) {
     switch (operator) {
         case '+':
@@ -44,6 +40,11 @@ function operate(operator, a, b) {
     }
 }
 
+// Function to round long decimals
+function roundResult(number) {
+  return Math.round(number * 100000) / 100000;
+}
+
 //Get the display element
 const display = document.querySelector('.display');
 
@@ -54,63 +55,98 @@ function updateDisplay() {
 
 //Function to handle number inputs
 function inputNumber(num) {
-    if (displayValue === '0') {
+    if (displayValue === '0' || shouldResetDisplay) {
         displayValue = num;
+        shouldResetDisplay = false;
     } else {
         displayValue += num;
-    } updateDisplay();
+    } 
+    updateDisplay();
 }
 
 //Adding button capabilities to all the buttons
-const numberButtons = document.querySelectorAll('.number');
-numberButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        inputNumber(button.textContent);
-    });
-});
-
-//Function to handle operator inputs
 function inputOperator(op) {
-    if (first === '') {
-        first = displayValue;
-        operator = op;
-        displayValue = '0';
-    }   else if (operator && displayValue !== '0') {
-        second = displayValue;
-        first = String(operate(operator, parseFloat(first), parseFloat(second)));
-        operator = op;
-        displayValue = first;
-        updateDisplay();
-        displayValue = '0';
-    }   else {
-        operator = op;
-    } 
+  if (firstNumber === '') {
+    // First number input is complete
+    firstNumber = displayValue;
+    operator = op;
+    displayValue = '0';
+  } else if (operator) {  // Removed the displayValue !== '0' check
+    // There's already a first number and operator, so calculate the result
+    secondNumber = displayValue;
+    
+    // Check for division by zero in chained operations
+    if (operator === '/' && Number(secondNumber) === 0) {
+      displayValue = 'Error: Div by 0';
+      updateDisplay();
+      firstNumber = '';
+      secondNumber = '';
+      operator = '';
+      return;
+    }
+    
+    const result = operate(operator, Number(firstNumber), Number(secondNumber));
+    firstNumber = String(roundResult(result));
+    operator = op;
+    displayValue = firstNumber;
+    updateDisplay();
+    displayValue = '0';
+  } else {
+    // Just update the operator if user pressed multiple operators
+    operator = op;
+  }
 }
 
 //Function to calculate result with equals button
 function calculate() {
-    if (first !== '' && operator !== '' && displayValue !== '0') {
-        second = displayValue;
-        const result = operate(operator, parseFloat(first), parseFloat(second));
-        displayValue = String(result);
-        updateDisplay();
-        first = '';
-        second = '';
-        operator = '';  
+  if (firstNumber !== '' && operator !== '') {  // Removed the displayValue !== '0' check
+    secondNumber = displayValue;
+    
+    // Check for division by zero
+    if (operator === '/' && Number(secondNumber) === 0) {
+      displayValue = 'Error: Div by 0';
+      updateDisplay();
+      firstNumber = '';
+      secondNumber = '';
+      operator = '';
+      return;
     }
+    
+    const result = operate(operator, Number(firstNumber), Number(secondNumber));
+    displayValue = String(roundResult(result));
+    updateDisplay();
+    
+    // Reset for next calculation
+    firstNumber = '';
+    secondNumber = '';
+    operator = '';
+    shouldResetDisplay = true;
+  }
 }
 
 //Function to clear all values
 function clear() {
-    first = '';
-    second = '';
+    firstNumber = '';  // Changed from 'first'
+    secondNumber = '';  // Changed from 'second'
     operator = '';
     displayValue = '0';
     updateDisplay();
 }
 
-//Adding event listeners to operator, equals and clear buttons
+// Add event listeners for NUMBER buttons (this was missing!)
+const numberButtons = document.querySelectorAll('.number');
+numberButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Check if it's the decimal button
+      if (button.textContent === '.') {
+        inputDecimal();
+      } else {
+        inputNumber(button.textContent);
+      }
+    });
+});
 
+//Adding event listeners to operator, equals and clear buttons
 const operatorButtons = document.querySelectorAll('.operator');
 operatorButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -127,3 +163,18 @@ const clearButton = document.querySelector('.clear');
 clearButton.addEventListener('click', () => {
     clear();
 });
+
+//Function to handle decimal point input
+function inputDecimal() {
+  if (shouldResetDisplay) {
+    displayValue = '0.';
+    shouldResetDisplay = false;
+    updateDisplay();
+  } else if (!displayValue.includes('.')) {
+    displayValue += '.';
+    updateDisplay();
+  }
+}
+
+// Initialize display
+updateDisplay();
