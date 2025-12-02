@@ -70,3 +70,11 @@ button:hover {
 .equals:hover {
   background-color: #0b0;
 }
+
+.delete {
+  background-color: #f60;
+}
+
+.delete:hover {
+  background-color: #f70;
+}

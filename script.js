@@ -146,7 +146,7 @@ numberButtons.forEach(button => {
     });
 });
 
-//Adding event listeners to operator, equals and clear buttons
+//Adding event listeners to operator, equals, clear, and delete buttons
 const operatorButtons = document.querySelectorAll('.operator');
 operatorButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -164,6 +164,11 @@ clearButton.addEventListener('click', () => {
     clear();
 });
 
+const deleteButton = document.querySelector('.delete');
+deleteButton.addEventListener('click', () => {
+    backspace();
+});
+
 //Function to handle decimal point input
 function inputDecimal() {
   if (shouldResetDisplay) {
@@ -175,6 +180,48 @@ function inputDecimal() {
     updateDisplay();
   }
 }
+
+// Function to handle backspace
+function backspace() {
+  if (displayValue.length > 1) {
+    displayValue = displayValue.slice(0, -1);
+  } else {
+    displayValue = '0';
+  }
+  updateDisplay();
+}
+
+//Function to handle keyboard support
+function handleKeyboard(e) {
+    // Number keys
+    if (e.key >= '0' && e.key <= '9') {
+        inputNumber(e.key);
+    }
+    // Decimal point
+    else if (e.key === '.') {
+        inputDecimal();
+    }
+    // Operators
+    else if (['+', '-', '*', '/'].includes(e.key)) {
+        inputOperator(e.key);
+    }
+    // Enter key for equals
+    else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();  // Prevent form submission if inside a form
+        calculate();
+    }
+    // Backspace key
+    else if (e.key === 'Backspace') {
+        backspace();
+    }
+    // Escape key for clear
+    else if (e.key === 'Escape') {
+        clear();
+    }
+}
+
+document.addEventListener('keydown', handleKeyboard);
+
 
 // Initialize display
 updateDisplay();
